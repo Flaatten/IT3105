@@ -3,7 +3,8 @@ sys.path.append('/Users/jonasdammen/Projects/IT3105/tools')
 import tensorflow as tf
 import numpy as np
 import math
-import matplotlib.pyplot as PLT
+import matplotlib
+matplotlib.use("TkAgg")
 import tflowTools as TFT
 
 # ******* A General Artificial Neural Network ********
@@ -34,7 +35,7 @@ class Gann():
     # grabvar gets its own matplotlib figure in which to display its value.
     def add_grabvar(self,module_index,type='wgt'):
         self.grabvars.append(self.modules[module_index].getvar(type))
-        self.grabvar_figures.append(PLT.figure())
+        self.grabvar_figures.append(matplotlib.pyplot.figure())
 
     def roundup_probes(self):
         self.probes = tf.summary.merge_all()
@@ -167,12 +168,12 @@ class Gann():
                 print(v, end="\n\n")
 
     def run(self,epochs=100,sess=None,continued=False,bestk=None):
-        PLT.ion()
+        matplotlib.pyplot.ion()
         self.training_session(epochs,sess=sess,continued=continued)
         self.test_on_trains(sess=self.current_session,bestk=bestk)
         self.testing_session(sess=self.current_session,bestk=bestk)
         self.close_current_session(view=False)
-        PLT.ioff()
+        matplotlib.pyplot.ioff()
 
     # After a run is complete, runmore allows us to do additional training on the network, picking up where we
     # left off after the last call to run (or runmore).  Use of the "continued" parameter (along with
