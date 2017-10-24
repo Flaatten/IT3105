@@ -44,6 +44,16 @@ class Application(tk.Frame):
         self.arguments = [["Nr of hidden layers", "0"], ["Learning rate", "0.5"]]
 
     def create_widgets(self):
+        """
+        self.labels=[]
+        for i in range(0,25):
+            label = tk.Label(self)
+            label.pack(side="left")
+            self.labels.append()
+        """
+        self.entry = tk.Entry(self, )
+        self.entry.pack(side="bottom")
+
         self.run_ANN = tk.Button(self)
         self.run_ANN["text"] = "Run ANN"
         self.run_ANN["command"] = self.run_network
@@ -54,11 +64,14 @@ class Application(tk.Frame):
         self.init_ANN["command"] = self.initialize_network
         self.init_ANN.pack(side="right")
 
+
         self.quit = tk.Button(self, text="QUIT", fg="red", command=root.destroy)
         self.quit.pack(side="bottom")
 
     def initialize_network(self, epochs=50,nbits=10,ncases=500,lrate=0.5,showint=500,mbs=20,vfrac=0.1,tfrac=0.1,vint=200,sm=True,bestk=1):
         print("initializing network with following input: ")
+        print(self.entry.get())
+
         for i, argument in enumerate(self.arguments):
           print(str(i + 1) + ".  " + argument[0] + ": " + argument[1])
         case_generator = (lambda: TFT.gen_vector_count_cases(ncases,nbits))
