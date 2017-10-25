@@ -86,11 +86,13 @@ class Gann():
     # of the weight array.
 
     def configure_learning(self):
+
         if(self.error_type == "cross-entropy"):
             print("Using cross-entropy as loss function")
             self.error = tf.reduce_mean(-tf.reduce_sum(self.target *
-                                                       tf.log(self.output), reduction_indices=[1])
-                                        )
+                             tf.log(self.output), reduction_indices=[1])
+              )
+
         else:
             print("Using MSE as loss function")
             self.error = tf.reduce_mean(

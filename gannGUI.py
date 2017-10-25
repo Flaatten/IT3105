@@ -209,7 +209,7 @@ class Application():
         self.network_settings[3].set(mapping[10])
         self.network_settings[4].set(mapping[1])
         self.network_settings[6].set(mapping[0])
-        self.network_settings[7].set(mapping[2])
+        self.network_settings[7].set(mapping[4])
         self.network_settings[8].set(mapping[5])
         self.network_settings[9].set(mapping[3])
         self.network_settings[11].set(mapping[6])
@@ -223,13 +223,13 @@ class Application():
 
     def run_network(self):
         self.status.set("Running GANN")
-        self.ann.run(self.epochs, bestk=self.bestk)
+        self.ann.run(self.epochs, bestk=1)
         self.status.set("Finished running Gann")
 
     def getMapping(self, i):
         #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, sm, bestk, hidden_activating, loss
         mappings = [
-            [5, 0.05, 0, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy"],
+            [5, 0.05, 0, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy"],
             [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
             [100, 0.1, 0, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
             [100, 0.1, 0, 20, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
