@@ -15,7 +15,7 @@ import mnist_basics as mnist
 
 class Gann():
 
-    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, softmax=False, hidden_activation_function="relu", error_type="mse"):
+    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, output_activation="softmax", hidden_activation_function="relu", error_type="mse"):
         self.learning_rate = lrate
         self.layer_sizes = dims  # Sizes of each layer of neurons
         self.show_interval = showint  # Frequency of showing grabbed variables
@@ -28,7 +28,7 @@ class Gann():
         self.validation_interval = vint
         self.validation_history = []
         self.caseman = cman
-        self.softmax_outputs = softmax
+        self.output_activation = output_activation
         self.error_type = error_type
         self.modules = []
         self.hidden_activation_function = hidden_activation_function
@@ -64,9 +64,19 @@ class Gann():
             invar = gmod.output
             insize = gmod.outsize
         self.output = gmod.output  # Output of last module is output of whole network
-        if self.softmax_outputs:
+        if self.output_activation == 'softmax':
             print("Using softmax activation for output layer")
             self.output = tf.nn.softmax(self.output)
+        elif self.output_activation == 'relu':
+            print("Using ReLU activation for output layer")
+            self.output = tf.nn.relu(self.output)
+        elif self.output_activation == 'sigmoid':
+            print("Using sigmoid activation for output layer")
+            self.output = tf.nn.sigmoid(self.output)
+        elif self.output_activation == 'tanh':
+            print("Using tanh activation for output layer")
+            self.output = tf.nn.tanh(self.output)
+
         self.target = tf.placeholder(
             tf.float64, shape=(None, gmod.outsize), name='Target')
         self.configure_learning()
@@ -79,7 +89,8 @@ class Gann():
         if(self.error_type == "cross-entropy"):
             print("Using cross-entropy as loss function")
             self.error = tf.reduce_mean(-tf.reduce_sum(self.target *
-                                                       tf.log(self.output), reduction_indices=[1]))
+                                                       tf.log(self.output), reduction_indices=[1])
+                                        )
         else:
             print("Using MSE as loss function")
             self.error = tf.reduce_mean(
@@ -131,9 +142,11 @@ class Gann():
                 self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                  feed_dict=feeder,  show_interval=None)
+
         if bestk is None:
             print('%s Set Error = %f ' % (msg, testres))
         else:
+            print("result: ", testres, ", num cases: ", len(cases))
             print('%s Set Correct Classifications = %f %%' %
                   (msg, 100 * (testres / len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
@@ -425,7 +438,7 @@ class Caseman():
             self.cases = None
         else:
             print("not a valid case")
-
+        print(self.cases)
         print(len(self.cases), "cases generated")
 
     def organize_cases(self):
