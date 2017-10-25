@@ -75,10 +75,10 @@ class Gann():
     # of the weight array.
 
     def configure_learning(self):
-        # elf.error = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(self.target - self.output), reduction_indices = [1]))
+        self.error = tf.reduce_mean(tf.square(self.target - self.output),name='MSE')
 
-        self.error = tf.reduce_mean(
-            tf.square(self.target - self.output), name='MSE')
+        #self.error = tf.reduce_mean(
+        #    tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.output), name="CE")
 
         # Simple prediction runs will request the value of output neurons
         self.predictor = self.output

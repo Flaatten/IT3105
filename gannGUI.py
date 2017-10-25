@@ -141,13 +141,12 @@ class Application():
         try:
             self.params = self.parameters.get()
             print(self.network_settings[0].get())
-            self.dims = [int(x)
-                         for x in self.network_settings[0].get().split(" ")]
+            self.dims = [int(x) for x in self.network_settings[0].get().split(" ")]
             self.hidden_activation_function = self.network_settings[1].get()
             print(self.hidden_activation_function, "validate")
             #self.output_activation_function = self.network_settings[2].get()
             #self.loss_function = self.network_settings[3].get()
-            self.learning_rate = float(self.network_settings[4].get())
+            self.lrate = float(self.network_settings[4].get())
             #self.initial_weight_range = [float(x) for x in self.network_settings[5].get().split("-")]
             self.epochs = int(self.network_settings[6].get())
             print("epochs", self.epochs)
@@ -231,6 +230,13 @@ class Application():
         print("bestk", self.bestk)  # 8
 
     def run_network(self):
+        matplotlib.pyplot.ion()
+        self.ann.training_session(epochs=self.epochs, sess=None, continued=False)
+        self.ann.
+        self.ann.test_on_trains(sess=self.current_session, bestk=bestk)
+        self.ann.testing_session(sess=self.current_session, bestk=bestk)
+        self.ann.close_current_session(view=False)
+        matplotlib.pyplot.ioff()
         self.status.set("Running GANN")
         self.ann.run(self.epochs, bestk=self.bestk)
         self.status.set("Finished running Gann")
@@ -257,14 +263,14 @@ class Application():
 
     def getDims(self, i):
         dims = [
-            "10 8 2",
+            "10 4 2",
             "16 16",
             "15 15 16",
             "25 18 9",
             "784 100 10",
-            "11 6",
-            "9 7",
-            "8 10",
+            "11 3 6",
+            "9 3 7",
+            "8 3 10",
         ]
         return dims[i]
 
