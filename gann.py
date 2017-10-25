@@ -15,7 +15,7 @@ import mnist_basics as mnist
 
 class Gann():
 
-    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, softmax=False, hidden_activation_function="relu"):
+    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, softmax=False, hidden_activation_function="relu", error_type="mse"):
         self.learning_rate = lrate
         self.layer_sizes = dims  # Sizes of each layer of neurons
         self.show_interval = showint  # Frequency of showing grabbed variables
@@ -29,6 +29,7 @@ class Gann():
         self.validation_history = []
         self.caseman = cman
         self.softmax_outputs = softmax
+        self.error_type = error_type
         self.modules = []
         self.hidden_activation_function = hidden_activation_function
         print(self.hidden_activation_function, "gann")
@@ -75,10 +76,14 @@ class Gann():
     # of the weight array.
 
     def configure_learning(self):
-        # elf.error = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(self.target - self.output), reduction_indices = [1]))
-
-        self.error = tf.reduce_mean(
-            tf.square(self.target - self.output), name='MSE')
+        if(self.error_type == "cross-entropy"):
+            print("Using cross-entropy as loss function")
+            self.error = tf.reduce_mean(-tf.reduce_sum(self.target *
+                                                       tf.log(self.output), reduction_indices=[1]))
+        else:
+            print("Using MSE as loss function")
+            self.error = tf.reduce_mean(
+                tf.square(self.target - self.output), name='MSE')
 
         # Simple prediction runs will request the value of output neurons
         self.predictor = self.output
