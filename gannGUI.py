@@ -53,8 +53,8 @@ class Application():
 
         self.label_details = ["Eg. '2,25,12,2'",
                               "'relu', 'sigmoid' or 'tanh'",
-                              "See tensorflow documentation for list of supported functions",
-                              "'cross entropy' or 'mse'",
+                              "'softmax', 'relu', 'sigmoid' or 'tanh'",
+                              "'cross-entropy' or 'mse'",
                               "",
                               "Eg. '0.3-0.7'",
                               "",
@@ -74,14 +74,14 @@ class Application():
         self.hidden_activation_function = ""
         self.output_activation_function = ""
         self.loss_function = ""
-        self.learning_rate = 0
+        self.lrate = 0
         self.initial_weight_range = []
         self.epochs = 0
-        self.validationFraction = 0
-        self.testFraction = 0
-        self.minibatch_size = 0
+        self.vfrac = 0
+        self.tfrac = 0
+        self.mbs = 0
         self.map_batch_size = 0
-        self.validation_interval = 0
+        self.vint = 0
         self.steps = 0
         self.map_layers = 0
         self.map_dendrograms = 0
@@ -141,22 +141,29 @@ class Application():
         try:
             self.params = self.parameters.get()
             print(self.network_settings[0].get())
+<<<<<<< HEAD
             self.dims = [int(x) for x in self.network_settings[0].get().split(" ")]
             self.hidden_activation_function = self.network_settings[1].get()
             print(self.hidden_activation_function, "validate")
             #self.output_activation_function = self.network_settings[2].get()
             #self.loss_function = self.network_settings[3].get()
+=======
+            self.dims = [int(x)
+                         for x in self.network_settings[0].get().split(" ")]
+
+            self.hidden_activation_function = self.network_settings[1].get()
+
+            self.output_activation_function = self.network_settings[2].get()
+            self.loss_function = self.network_settings[3].get()
+>>>>>>> ac14f532f63a5fec3d906e5b38d967a35cf365c4
             self.lrate = float(self.network_settings[4].get())
             #self.initial_weight_range = [float(x) for x in self.network_settings[5].get().split("-")]
             self.epochs = int(self.network_settings[6].get())
-            print("epochs", self.epochs)
             self.vfrac = float(self.network_settings[7].get())
             self.tfrac = float(self.network_settings[8].get())
-            print("mbs", self.network_settings[9].get())
 
             self.mbs = int(self.network_settings[9].get())
             #self.map_batch_size = int(self.network_settings[10].get())
-            print("vint", self.network_settings[11].get())
 
             self.vint = int(self.network_settings[11].get())
             # self.steps = int(self.network_settings[12].get())      WHY ?
@@ -177,7 +184,7 @@ class Application():
                             vfrac=self.vfrac, tfrac=self.tfrac)
         self.status.set("Initializing GANN")
         self.ann = Gann(dims=self.dims, cman=self.cman, lrate=self.lrate,
-                        showint=self.showint, mbs=self.mbs, vint=self.vint, softmax=self.sm, hidden_activation_function=self.hidden_activation_function)
+                        showint=self.showint, mbs=self.mbs, vint=self.vint, output_activation=self.output_activation_function, hidden_activation_function=self.hidden_activation_function, error_type=self.loss_function)
         # Plot a histogram and avg of the incoming weights to module 0.
         self.ann.gen_probe(0, 'wgt', ('hist', 'avg'))
         # Plot average and max value of module 1's output vector
@@ -201,33 +208,26 @@ class Application():
         self.vfrac = mapping[4]
         self.tfrac = mapping[5]
         self.vint = mapping[6]
-        self.sm = mapping[7]
         self.bestk = mapping[8]
-        self.size = mapping[9]
-        self.mbs = mapping[3] if mapping[3] else mapping[9]
 
         self.parameters.set(params)
         self.network_settings[0].set(dims)
-        self.network_settings[1].set(mapping[10])
-        # self.network_settings[2].set("sigmoid")
-        # self.network_settings[3].set("mse")
+        self.network_settings[1].set(mapping[9])
+        self.network_settings[2].set(mapping[7])
+        self.network_settings[3].set(mapping[10])
         self.network_settings[4].set(mapping[1])
-        # self.network_settings[5].set("0.4-0.6")
         self.network_settings[6].set(mapping[0])
-        self.network_settings[7].set(mapping[4])
+        self.network_settings[7].set(mapping[2])
         self.network_settings[8].set(mapping[5])
-        self.network_settings[9].set(mapping[3] if mapping[3] else mapping[9])
+        self.network_settings[9].set(mapping[3])
         self.network_settings[11].set(mapping[6])
+
         # self.network_settings[10].set("50")
         # self.network_settings[11].set("50")
         # self.network_settings[12].set("50")
         # self.network_settings[13].set("50")
         # self.network_settings[14].set("50")
         # self.network_settings[15].set("50")
-        print("VALUES NOT SHOWN IN THE GUI: ")
-        print("showint: ", self.showint)  # 2
-        print("softmax", self.sm)  # 7
-        print("bestk", self.bestk)  # 8
 
     def run_network(self):
         matplotlib.pyplot.ion()
@@ -242,15 +242,16 @@ class Application():
         self.status.set("Finished running Gann")
 
     def getMapping(self, i):
+        #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, sm, bestk, hidden_activating, loss
         mappings = [
-            [50, 0.1, 25, None, 0.1, 0.1, 25, True, 1, 10, "relu"],
-            [100, 0.1, 25, None, 0.1, 0.1, 25, True, 1, 1, "relu"],
-            [100, 0.1, 0, None, 0.1, 0.1, 25, True, 1, 10, "relu"],
-            [100, 0.1, 10, None, 0.1, 0.1, 25, True, 1, 20, "relu"],
-            [50, 0.03, 0, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
+            [5, 0.05, 0, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy"],
+            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
+            [100, 0.1, 0, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
+            [100, 0.1, 0, 20, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
+            [20, 0.01, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
         ]
         return mappings[i]
 
