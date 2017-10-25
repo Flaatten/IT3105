@@ -88,6 +88,8 @@ class Application():
         self.display_weights = 0
         self.display_biases = 0
 
+        self.status = StringVar();
+
         for i in range(len(self.labels)):
             self.network_settings.append(StringVar())
 
@@ -125,29 +127,40 @@ class Application():
                    command=self.validate).grid(column=0, row=20)
         ttk.Button(frame, text="Initialize",
                    command=self.initialize).grid(column=1, row=20)
+        ttk.Button(frame, text="autofill",
+                   command=self.autofill).grid(column=2, row=20)
+        ttk.Button(frame, text="Run network",
+                   command=self.run_network).grid(column=3, row=20)
+
+        ttk.Label(frame, text="Status", font=("Arial", 20)).grid(row=21, column=1, pady=10)
+        ttk.Entry(frame, textvariable=self.status).grid(column=2, row=21, columnspan=2)
 
     def validate(self):
         try:
-            self.dims = [int(x)
-                         for x in self.network_settings[0].get().split(",")]
-
-            self.hidden_activation_function = self.network_settings[1].get()
-            self.output_activation_function = self.network_settings[2].get()
-            self.loss_function = self.network_settings[3].get()
+            self.params = self.parameters.get()
+            print(self.network_settings[0].get())
+            self.dims = [int(x) for x in self.network_settings[0].get().split(" ")]
+            #self.hidden_activation_function = self.network_settings[1].get()
+            #self.output_activation_function = self.network_settings[2].get()
+            #self.loss_function = self.network_settings[3].get()
             self.learning_rate = float(self.network_settings[4].get())
-            self.initial_weight_range = [
-                float(x) for x in self.network_settings[5].get().split("-")]
+            #self.initial_weight_range = [float(x) for x in self.network_settings[5].get().split("-")]
             self.epochs = int(self.network_settings[6].get())
-            self.validation_fraction = float(self.network_settings[7].get())
-            self.test_fraction = float(self.network_settings[8].get())
-            self.minibatch_size = int(self.network_settings[9].get())
-            self.map_batch_size = int(self.network_settings[10].get())
-            self.validation_interval = int(self.network_settings[11].get())
-            self.steps = int(self.network_settings[12].get())
-            self.map_layers = int(self.network_settings[13].get())
-            self.dendrograms = int(self.network_settings[14].get())
-            self.display_weights = int(self.network_settings[15].get())
-            self.biases = int(self.network_settings[16].get())
+            print("epochs", self.epochs)
+            self.vfrac = float(self.network_settings[7].get())
+            self.tfrac = float(self.network_settings[8].get())
+            print("mbs", self.network_settings[9].get())
+
+            self.mbs = int(self.network_settings[9].get())
+            #self.map_batch_size = int(self.network_settings[10].get())
+            print("vint", self.network_settings[11].get())
+
+            self.vint = int(self.network_settings[11].get())
+            #self.steps = int(self.network_settings[12].get())      WHY ?
+            #self.map_layers = int(self.network_settings[13].get())
+            #self.dendrograms = int(self.network_settings[14].get())
+            #self.display_weights = int(self.network_settings[15].get())
+            #self.biases = int(self.network_settings[16].get())
             self.valid_input = True
 
         except Exception as e:
@@ -155,51 +168,105 @@ class Application():
             self.valid_input = False
 
     def initialize(self):
-        case_generator = None
 
-        epochs = 100
-        lrate = 0.1
-        showint = 0
-        mbs = None
-        vfrac = 0.1
-        tfrac = 0.1
-        vint = 0
-        sm = True
-
-        bestk = 1
-
-        size = 10
-        mbs = mbs if mbs else size
-        case_generator = (lambda: TFT.gen_all_parity_cases(10))
-        cman = Caseman(cfunc=case_generator, vfrac=vfrac, tfrac=tfrac)
-        ann = Gann(dims=[10, 8, 2], cman=cman, lrate=lrate,
-                   showint=showint, mbs=mbs, vint=vint, softmax=sm)
+        self.status.set("initializing dataset")
+        self.cman = Caseman(cfunc=self.case, params=self.params, vfrac=self.vfrac, tfrac=self.tfrac)
+        self.status.set("Initializing GANN")
+        self.ann = Gann(dims=self.dims, cman=self.cman, lrate=self.lrate,
+                   showint=self.showint, mbs=self.mbs, vint=self.vint, softmax=self.sm)
         # Plot a histogram and avg of the incoming weights to module 0.
-        ann.gen_probe(0, 'wgt', ('hist', 'avg'))
+        self.ann.gen_probe(0, 'wgt', ('hist', 'avg'))
         # Plot average and max value of module 1's output vector
         # ann.gen_probe(1, 'out', ('avg', 'max'))
         # Add a grabvar (to be displayed in its own matplotlib window).
         # ann.add_grabvar(0, 'wgt')
-        ann.run(epochs, bestk=bestk)
-        return ann
+        self.status.set("initialization was succesful")
 
-    def initialize_network(self, epochs=50, nbits=10, ncases=500, lrate=0.5, showint=500, mbs=20, vfrac=0.1, tfrac=0.1, vint=200, sm=True, bestk=1):
-        print("initializing network with following inputs: ")
-        print(self.entry.get())
 
-        for i, argument in enumerate(self.arguments):
-            print(str(i + 1) + ".  " + argument[0] + ": " + argument[1])
-        case_generator = (lambda: TFT.gen_vector_count_cases(ncases, nbits))
-        cman = Caseman(cfunc=case_generator, vfrac=vfrac, tfrac=tfrac)
-        self.ann = Gann(dims=[nbits, nbits * 3, nbits + 1], cman=cman,
-                        lrate=lrate, showint=showint, mbs=mbs, vint=vint, softmax=sm)
 
-    def run_network(self, epochs=50, bestk=None):
-        print("Running network with following input: ")
-        for i, argument in enumerate(self.arguments):
-            print(str(i + 1) + ".  " + argument[0] + ": " + argument[1])
-        self.ann.run(epochs, bestk=bestk)
+    def autofill(self):
+      case = int(self.data_source.get())
+      mapping = self.getMapping(case) 
+      params = self.getParams(case)
+      dims = self.getDims(case)
+      self.case = case
+      self.params = params
+      self.dims = dims.split(" ")
+      self.epochs = mapping[0]
+      self.lrate = mapping[1]
+      self.showint = mapping[2]
+      self.mbs = mapping[3]
+      self.vfrac = mapping[4]
+      self.tfrac = mapping[5]
+      self.vint = mapping[6]
+      self.sm = mapping[7]
+      self.bestk = mapping[8]
+      self.size = mapping[9]
+      self.mbs = mapping[3] if mapping[3] else mapping[9]
 
+      self.parameters.set(params)
+      self.network_settings[0].set(dims)
+      #self.network_settings[1].set("sigmoid")
+      #self.network_settings[2].set("sigmoid")
+      #self.network_settings[3].set("mse")
+      self.network_settings[4].set(mapping[1])
+      #self.network_settings[5].set("0.4-0.6")
+      self.network_settings[6].set(mapping[0])
+      self.network_settings[7].set(mapping[4])
+      self.network_settings[8].set(mapping[5])
+      self.network_settings[9].set(mapping[3] if mapping[3] else mapping[9])
+      self.network_settings[11].set(mapping[6])
+      #self.network_settings[10].set("50")
+      #self.network_settings[11].set("50")
+      #self.network_settings[12].set("50")
+      #self.network_settings[13].set("50")
+      #self.network_settings[14].set("50")
+      #self.network_settings[15].set("50")
+      print("VALUES NOT SHOWN IN THE GUI: ")
+      print("showint: ", self.showint) #2
+      print("softmax", self.sm) #7
+      print("bestk", self.bestk) #8
+
+    def run_network(self):
+        self.status.set("Running GANN")
+        self.ann.run(self.epochs, bestk=self.bestk)
+        self.status.set("Finished running Gann")
+
+
+
+
+    def getMapping(self, i):
+      mappings = [
+        [50,0.1,25,None,0.1,0.1,25,True,1,10],
+        [100,0.1,25,None,0.1,0.1,25,True,1,1],
+        [100,0.1,25,None,0.1,0.1,25,True,1,10],
+        [100,0.1,10,None,0.1,0.1,25,True,1,20],
+        [50,0.03,10,None,0.1,0.1,10,True,False,20],
+        [50,0.03,10,None,0.1,0.1,10,True,False,20],
+        [50,0.03,10,None,0.1,0.1,10,True,False,20],
+        [50,0.03,10,None,0.1,0.1,10,True,False,20],
+      ]
+      return mappings[i]
+
+    def getParams(self, i):
+      params = ["10", "4", "500 15", "25 1000 0 8" ]
+      if( i < 4):
+        return params[i]
+      else:
+        return ""
+
+    def getDims(self, i):
+      dims = [
+        "10 8 2",
+        "16 16",
+        "15 15 16",
+        "25 18 9",
+        "784 100 10",
+        "11 6",
+        "9 7",
+        "8 10",
+        ]
+      return dims[i]
 
 app = Application()
 app.mainloop()

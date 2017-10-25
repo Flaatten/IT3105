@@ -1,14 +1,16 @@
 import sys
 sys.path.append('./tools')
+sys.path.append('./datasets/mnist-zip')
 import tensorflow as tf
 import numpy as np
 import math
 import matplotlib
 matplotlib.use("TkAgg")
 import tflowTools as TFT
-
+import mnist_basics as mnist
 # ******* A General Artificial Neural Network ********
 # This is the original GANN, which has been improved in the file gann.py
+#https://www.tensorflow.org/api_guides/python/nn#Classification
 
 
 class Gann():
@@ -256,6 +258,7 @@ class Gannmodule():
         self.input = invariable
         self.index = index
         self.name = "Module-" + str(self.index)
+        self.cases = []
         self.build()
 
     def build(self):
@@ -295,17 +298,110 @@ class Gannmodule():
 
 class Caseman():
 
-    def __init__(self, cfunc, vfrac=0, tfrac=0):
-        self.casefunc = cfunc
+    def __init__(self, cfunc, params, vfrac=0, tfrac=0):
+        self.casenr = cfunc
         self.validation_fraction = vfrac
         self.test_fraction = tfrac
         self.training_fraction = 1 - (vfrac + tfrac)
+        if (params):
+            self.params = params.split();
+
+        self.cases = []
         self.generate_cases()
         self.organize_cases()
 
     def generate_cases(self):
         # Run the case generator.  Case = [input-vector, target-vector]
-        self.cases = self.casefunc()
+        if(self.casenr == 0):
+            #Parity
+            #params: num_bits, double=True
+            try:
+                num_bits = int(self.params[0])
+
+                if(len(self.params) > 1):
+                    double = self.params[1]
+                else:
+                    double = True
+                self.cases = TFT.gen_all_parity_cases(num_bits, double)
+            except ValueError:
+                print("Case Parameters not valid")
+        elif(self.casenr == 1):
+            #Autoencoder - NO performance testing
+            #TODO: Add if time; NOTE THIS IS THE CORRECT GENERATION
+            #Can choose between this:
+            try:
+                nbits = int(self.params[0])
+                self.cases = TFT.gen_all_one_hot_cases(2**4)
+            except ValueError:
+                print("Case Parameters not valid")
+            #OR this:
+            #self.cases = TFT.gen_dense_autoencoder_cases(count,size,dr=(0,1)
+        elif(self.casenr == 2):
+            #Bit counter
+            try:
+                ncases = int(self.params[0])
+                nbits = int(self.params[1])
+                self.cases = TFT.gen_vector_count_cases(ncases,nbits)
+            except ValueError:
+                print("Case Parameters not valid")
+
+        elif(self.casenr == 3):
+            #Segment counter
+            try:
+                size = int(self.params[0])
+                count = int(self.params[1])
+                minsegs = int(self.params[2])
+                maxsegs = int(self.params[3])
+                if (len(self.params) > 4):
+                    poptargs = False
+                else:
+                    poptargs = True
+
+                self.cases = TFT.gen_segmented_vector_cases(size, count, minsegs, maxsegs, poptargs)
+            except ValueError:
+                print("Case Parameters not valid")
+
+        elif(self.casenr == 4):
+            #MNIST
+            cases = mnist.load_all_flat_cases();
+            for case in cases:
+                inp = case[:-1]
+                for j, num in enumerate(inp):
+                    inp[j] = num/255 
+                label = TFT.int_to_one_hot(case[-1], 10,)
+                self.cases.append([inp,label])
+        elif(self.casenr == 5):
+            #Wine quality
+            f = open("./datasets/winequality_red.txt", "r");
+            for line in f:
+                arr = [float(i) for i in line.split(';')[:-1]]
+                label = TFT.int_to_one_hot(int(line.split(';')[-1][0])-3, 6)
+                self.cases.append([arr,label])
+        elif(self.casenr == 6):
+            #Glass
+            f = open("./datasets/glass.txt", "r");
+            for line in f:
+                print(line)
+                arr = [float(i) for i in line.split(',')[:-1]]
+                label = TFT.int_to_one_hot(int(line.split(',')[-1][0])-1, 7)
+                self.cases.append([arr,label])
+        elif(self.casenr == 7):
+            #Yeast
+            f = open("./datasets/yeast.txt", "r");
+            for line in f:
+                arr = [float(i) for i in line.split(',')[:-1]]
+                label = TFT.int_to_one_hot(int(line.split(',')[-1][0])-1, 10)
+                self.cases.append([arr,label])
+        elif(self.casenr == 8):
+            #Hackers choice
+            #TODO
+            self.cases = None;
+        else:
+            print("not a valid case")
+
+        print(self.cases)
+        print("cases generated")
+
 
     def organize_cases(self):
         ca = np.array(self.cases)

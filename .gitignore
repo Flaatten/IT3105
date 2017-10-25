@@ -1,3 +1,9 @@
 datasets/
 readings/
 __pycache__/
+.DS_Store
+netsaver/my_saved_session-0.data-00000-of-00001
+netsaver/my_saved_session-0.index
+netsaver/my_saved_session-0.meta
+tools/__pycache__/tflowTools.cpython-36.pycw
+probeview/events.out.tfevents.1508929685.Jonass-MacBook-Pro-2.local
