@@ -10,12 +10,12 @@ import tflowTools as TFT
 import mnist_basics as mnist
 # ******* A General Artificial Neural Network ********
 # This is the original GANN, which has been improved in the file gann.py
-#https://www.tensorflow.org/api_guides/python/nn#Classification
+# https://www.tensorflow.org/api_guides/python/nn#Classification
 
 
 class Gann():
 
-    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, softmax=False):
+    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, softmax=False, hidden_activation_function="relu"):
         self.learning_rate = lrate
         self.layer_sizes = dims  # Sizes of each layer of neurons
         self.show_interval = showint  # Frequency of showing grabbed variables
@@ -30,6 +30,8 @@ class Gann():
         self.caseman = cman
         self.softmax_outputs = softmax
         self.modules = []
+        self.hidden_activation_function = hidden_activation_function
+        print(self.hidden_activation_function, "gann")
         self.build()
 
     # Probed variables are to be displayed in the Tensorboard.
@@ -56,7 +58,8 @@ class Gann():
         insize = num_inputs
         # Build all of the modules
         for i, outsize in enumerate(self.layer_sizes[1:]):
-            gmod = Gannmodule(self, i, invar, insize, outsize)
+            gmod = Gannmodule(self, i, invar, insize,
+                              outsize, self.hidden_activation_function)
             invar = gmod.output
             insize = gmod.outsize
         self.output = gmod.output  # Output of last module is output of whole network
@@ -79,7 +82,7 @@ class Gann():
         optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
         self.trainer = optimizer.minimize(self.error, name='Backprop')
 
-    def do_training(self, sess, cases, epochs=100, continued=False):
+    def do_training(self, sess, cases, epochs=100, continued=False, hidden_activation_function="sigmoid"):
         if not(continued):
             self.error_history = []
         for i in range(epochs):
@@ -250,7 +253,7 @@ class Gann():
 # A general ann module = a layer of neurons (the output) plus its incoming weights and biases.
 class Gannmodule():
 
-    def __init__(self, ann, index, invariable, insize, outsize):
+    def __init__(self, ann, index, invariable, insize, outsize, hidden_activation_function):
         self.ann = ann
         self.insize = insize  # Number of neurons feeding into this module
         self.outsize = outsize  # Number of neurons in this module
@@ -259,6 +262,7 @@ class Gannmodule():
         self.index = index
         self.name = "Module-" + str(self.index)
         self.cases = []
+        self.hidden_activation_function = hidden_activation_function
         self.build()
 
     def build(self):
@@ -268,8 +272,15 @@ class Gannmodule():
                                    name=mona + '-wgt', trainable=True)  # True = default for trainable anyway
         self.biases = tf.Variable(np.random.uniform(-.1, .1, size=n),
                                   name=mona + '-bias', trainable=True)  # First bias vector
-        self.output = tf.nn.relu(
-            tf.matmul(self.input, self.weights) + self.biases, name=mona + '-out')
+        if(self.hidden_activation_function == "relu"):
+            print("Using ReLU for hidden modules")
+            self.output = tf.nn.relu(
+                tf.matmul(self.input, self.weights) + self.biases, name=mona + '-out')
+        else:
+            print("Using sigmoid for hidden modules")
+            self.output = tf.nn.sigmoid(
+                tf.matmul(self.input, self.weights) + self.biases, name=mona + '-out')
+
         self.ann.add_module(self)
 
     def getvar(self, type):  # type = (in,out,wgt,bias)
@@ -304,7 +315,7 @@ class Caseman():
         self.test_fraction = tfrac
         self.training_fraction = 1 - (vfrac + tfrac)
         if (params):
-            self.params = params.split();
+            self.params = params.split()
 
         self.cases = []
         self.generate_cases()
@@ -313,8 +324,8 @@ class Caseman():
     def generate_cases(self):
         # Run the case generator.  Case = [input-vector, target-vector]
         if(self.casenr == 0):
-            #Parity
-            #params: num_bits, double=True
+            # Parity
+            # params: num_bits, double=True
             try:
                 num_bits = int(self.params[0])
 
@@ -326,27 +337,27 @@ class Caseman():
             except ValueError:
                 print("Case Parameters not valid")
         elif(self.casenr == 1):
-            #Autoencoder - NO performance testing
-            #TODO: Add if time; NOTE THIS IS THE CORRECT GENERATION
-            #Can choose between this:
+            # Autoencoder - NO performance testing
+            # TODO: Add if time; NOTE THIS IS THE CORRECT GENERATION
+            # Can choose between this:
             try:
                 nbits = int(self.params[0])
                 self.cases = TFT.gen_all_one_hot_cases(2**4)
             except ValueError:
                 print("Case Parameters not valid")
-            #OR this:
-            #self.cases = TFT.gen_dense_autoencoder_cases(count,size,dr=(0,1)
+            # OR this:
+            # self.cases = TFT.gen_dense_autoencoder_cases(count,size,dr=(0,1)
         elif(self.casenr == 2):
-            #Bit counter
+            # Bit counter
             try:
                 ncases = int(self.params[0])
                 nbits = int(self.params[1])
-                self.cases = TFT.gen_vector_count_cases(ncases,nbits)
+                self.cases = TFT.gen_vector_count_cases(ncases, nbits)
             except ValueError:
                 print("Case Parameters not valid")
 
         elif(self.casenr == 3):
-            #Segment counter
+            # Segment counter
             try:
                 size = int(self.params[0])
                 count = int(self.params[1])
@@ -357,51 +368,51 @@ class Caseman():
                 else:
                     poptargs = True
 
-                self.cases = TFT.gen_segmented_vector_cases(size, count, minsegs, maxsegs, poptargs)
+                self.cases = TFT.gen_segmented_vector_cases(
+                    size, count, minsegs, maxsegs, poptargs)
             except ValueError:
                 print("Case Parameters not valid")
 
         elif(self.casenr == 4):
-            #MNIST
-            cases = mnist.load_all_flat_cases();
+            # MNIST
+            cases = mnist.load_all_flat_cases()
             for case in cases:
                 inp = case[:-1]
                 for j, num in enumerate(inp):
-                    inp[j] = num/255 
+                    inp[j] = num / 255
                 label = TFT.int_to_one_hot(case[-1], 10,)
-                self.cases.append([inp,label])
+                self.cases.append([inp, label])
         elif(self.casenr == 5):
-            #Wine quality
-            f = open("./datasets/winequality_red.txt", "r");
+            # Wine quality
+            f = open("./datasets/winequality_red.txt", "r")
             for line in f:
                 arr = [float(i) for i in line.split(';')[:-1]]
-                label = TFT.int_to_one_hot(int(line.split(';')[-1][0])-3, 6)
-                self.cases.append([arr,label])
+                label = TFT.int_to_one_hot(int(line.split(';')[-1][0]) - 3, 6)
+                self.cases.append([arr, label])
         elif(self.casenr == 6):
-            #Glass
-            f = open("./datasets/glass.txt", "r");
+            # Glass
+            f = open("./datasets/glass.txt", "r")
             for line in f:
                 print(line)
                 arr = [float(i) for i in line.split(',')[:-1]]
-                label = TFT.int_to_one_hot(int(line.split(',')[-1][0])-1, 7)
-                self.cases.append([arr,label])
+                label = TFT.int_to_one_hot(int(line.split(',')[-1][0]) - 1, 7)
+                self.cases.append([arr, label])
         elif(self.casenr == 7):
-            #Yeast
-            f = open("./datasets/yeast.txt", "r");
+            # Yeast
+            f = open("./datasets/yeast.txt", "r")
             for line in f:
                 arr = [float(i) for i in line.split(',')[:-1]]
-                label = TFT.int_to_one_hot(int(line.split(',')[-1][0])-1, 10)
-                self.cases.append([arr,label])
+                label = TFT.int_to_one_hot(int(line.split(',')[-1][0]) - 1, 10)
+                self.cases.append([arr, label])
         elif(self.casenr == 8):
-            #Hackers choice
-            #TODO
-            self.cases = None;
+            # Hackers choice
+            # TODO
+            self.cases = None
         else:
             print("not a valid case")
 
         print(self.cases)
         print("cases generated")
-
 
     def organize_cases(self):
         ca = np.array(self.cases)
