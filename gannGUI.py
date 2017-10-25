@@ -149,7 +149,15 @@ class Application():
             self.output_activation_function = self.network_settings[2].get()
             self.loss_function = self.network_settings[3].get()
             self.lrate = float(self.network_settings[4].get())
-            #self.initial_weight_range = [float(x) for x in self.network_settings[5].get().split("-")]
+            self.initial_weight_range = []
+            for x in self.network_settings[5].get().split(","):
+                print(x[0])
+                if(x[0] == "-"):
+                    print(x[1:3])
+                    self.initial_weight_range.append(-float(x[1:4]))
+                else:
+                    self.initial_weight_range.append(float(x))
+            print(self.initial_weight_range)
             self.epochs = int(self.network_settings[6].get())
             self.vfrac = float(self.network_settings[7].get())
             self.tfrac = float(self.network_settings[8].get())
@@ -208,6 +216,7 @@ class Application():
         self.network_settings[2].set(mapping[7])
         self.network_settings[3].set(mapping[10])
         self.network_settings[4].set(mapping[1])
+        self.network_settings[5].set(mapping[11])
         self.network_settings[6].set(mapping[0])
         self.network_settings[7].set(mapping[4])
         self.network_settings[8].set(mapping[5])
@@ -227,16 +236,21 @@ class Application():
         self.status.set("Finished running Gann")
 
     def getMapping(self, i):
-        #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, sm, bestk, hidden_activating, loss
+        #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, in_wght_rangt
         mappings = [
-            [5, 0.05, 0, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy"],
-            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
-            [100, 0.1, 0, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
-            [100, 0.1, 0, 20, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE"],
-            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
-            [20, 0.01, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
-            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
-            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy"],
+            [5, 0.05, 0, 10, 0.1, 0.1, 1, "softmax", 1,
+                "relu", "cross-entropy", "-0.1,0.1"],
+            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1"],
+            [100, 0.1, 0, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1"],
+            [100, 0.1, 0, 20, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1"],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",
+                1, "relu", "cross-entropy", "-0.1,0.1"],
+            [20, 0.01, 0, 20, 0.1, 0.1, 10, "softmax",
+                1, "relu", "cross-entropy", "-0.1,0.1"],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",
+                1, "relu", "cross-entropy", "-0.1,0.1"],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",
+                1, "relu", "cross-entropy", "-0.1,0.1"],
         ]
         return mappings[i]
 
@@ -249,14 +263,14 @@ class Application():
 
     def getDims(self, i):
         dims = [
-            "10 8 2",
+            "10 4 2",
             "16 16",
             "15 15 16",
             "25 18 9",
             "784 100 10",
-            "11 6",
-            "9 7",
-            "8 10",
+            "11 3 6",
+            "9 3 7",
+            "8 3 10",
         ]
         return dims[i]
 
