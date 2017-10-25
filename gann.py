@@ -15,7 +15,7 @@ import mnist_basics as mnist
 
 class Gann():
 
-    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, output_activation="softmax", hidden_activation_function="relu", error_type="mse"):
+    def __init__(self, dims, cman, lrate=.1, showint=None, mbs=10, vint=None, output_activation="softmax", hidden_activation_function="relu", error_type="mse", initial_weights=[-0.1,0.1]):
         self.learning_rate = lrate
         self.layer_sizes = dims  # Sizes of each layer of neurons
         self.show_interval = showint  # Frequency of showing grabbed variables
@@ -33,6 +33,7 @@ class Gann():
         self.modules = []
         self.hidden_activation_function = hidden_activation_function
         print(self.hidden_activation_function, "gann")
+        self.initial_weights = initial_weights
         self.build()
 
     # Probed variables are to be displayed in the Tensorboard.
@@ -89,10 +90,6 @@ class Gann():
 
         if(self.error_type == "cross-entropy"):
             print("Using cross-entropy as loss function")
-            self.error = tf.reduce_mean(-tf.reduce_sum(self.target *
-                                                       tf.log(self.output), reduction_indices=[1])
-                                        )
-        elif(self.error_type == "softmax-cross-entropy"): 
             self.error = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.output), name="SCE")
         else:
@@ -144,6 +141,7 @@ class Gann():
         if bestk is not None:
             self.test_func = self.gen_match_counter(
                 self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
+
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                  feed_dict=feeder,  show_interval=None)
 
@@ -296,9 +294,10 @@ class Gannmodule():
     def build(self):
         mona = self.name
         n = self.outsize
-        self.weights = tf.Variable(np.random.uniform(-.1, .1, size=(self.insize, n)),
+        in_wgt = self.ann.initial_weights
+        self.weights = tf.Variable(np.random.uniform(in_wgt[0], in_wgt[1], size=(self.insize, n)),
                                    name=mona + '-wgt', trainable=True)  # True = default for trainable anyway
-        self.biases = tf.Variable(np.random.uniform(-.1, .1, size=n),
+        self.biases = tf.Variable(np.random.uniform(-0.1, 0.1, size=n),
                                   name=mona + '-bias', trainable=True)  # First bias vector
         if(self.hidden_activation_function == "relu"):
             print("Using ReLU for hidden modules")
@@ -442,7 +441,7 @@ class Caseman():
             self.cases = None
         else:
             print("not a valid case")
-        print(self.cases)
+        #print(self.cases)
         print(len(self.cases), "cases generated")
 
     def organize_cases(self):
