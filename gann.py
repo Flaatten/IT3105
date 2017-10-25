@@ -64,6 +64,7 @@ class Gann():
             insize = gmod.outsize
         self.output = gmod.output  # Output of last module is output of whole network
         if self.softmax_outputs:
+            print("Using softmax activation for output layer")
             self.output = tf.nn.softmax(self.output)
         self.target = tf.placeholder(
             tf.float64, shape=(None, gmod.outsize), name='Target')
@@ -74,8 +75,11 @@ class Gann():
     # of the weight array.
 
     def configure_learning(self):
+        # elf.error = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(self.target - self.output), reduction_indices = [1]))
+
         self.error = tf.reduce_mean(
             tf.square(self.target - self.output), name='MSE')
+
         # Simple prediction runs will request the value of output neurons
         self.predictor = self.output
         # Defining the training operator
@@ -199,6 +203,8 @@ class Gann():
                 print(v, end="\n\n")
 
     def run(self, epochs=100, sess=None, continued=False, bestk=None):
+        print("Running tranining with bestk = ", bestk, ", epochs = ", epochs,
+              ", learning_rate = ", self.learning_rate, ", minbatch size= ", self.minibatch_size)
         matplotlib.pyplot.ion()
         self.training_session(epochs, sess=sess, continued=continued)
         self.test_on_trains(sess=self.current_session, bestk=bestk)
@@ -275,6 +281,10 @@ class Gannmodule():
         if(self.hidden_activation_function == "relu"):
             print("Using ReLU for hidden modules")
             self.output = tf.nn.relu(
+                tf.matmul(self.input, self.weights) + self.biases, name=mona + '-out')
+        elif(self.hidden_activation_function == "tanh"):
+            print("Using tanh for hidden modules")
+            self.output = tf.nn.tanh(
                 tf.matmul(self.input, self.weights) + self.biases, name=mona + '-out')
         else:
             print("Using sigmoid for hidden modules")
@@ -411,8 +421,7 @@ class Caseman():
         else:
             print("not a valid case")
 
-        print(self.cases)
-        print("cases generated")
+        print(len(self.cases), "cases generated")
 
     def organize_cases(self):
         ca = np.array(self.cases)

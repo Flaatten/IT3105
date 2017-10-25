@@ -52,7 +52,7 @@ class Application():
                        "Display Biases", ]
 
         self.label_details = ["Eg. '2,25,12,2'",
-                              "'relu' or 'sigmoid'",
+                              "'relu', 'sigmoid' or 'tanh'",
                               "See tensorflow documentation for list of supported functions",
                               "'cross entropy' or 'mse'",
                               "",
@@ -209,7 +209,7 @@ class Application():
 
         self.parameters.set(params)
         self.network_settings[0].set(dims)
-        # self.network_settings[1].set("sigmoid")
+        self.network_settings[1].set(mapping[10])
         # self.network_settings[2].set("sigmoid")
         # self.network_settings[3].set("mse")
         self.network_settings[4].set(mapping[1])
@@ -237,14 +237,14 @@ class Application():
 
     def getMapping(self, i):
         mappings = [
-            [50, 0.1, 25, None, 0.1, 0.1, 25, True, 1, 10],
-            [100, 0.1, 25, None, 0.1, 0.1, 25, True, 1, 1],
-            [100, 0.1, 0, None, 0.1, 0.1, 25, True, 1, 10],
-            [100, 0.1, 10, None, 0.1, 0.1, 25, True, 1, 20],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, False, 20],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, False, 20],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, False, 20],
-            [50, 0.03, 10, None, 0.1, 0.1, 10, True, False, 20],
+            [50, 0.1, 25, None, 0.1, 0.1, 25, True, 1, 10, "relu"],
+            [100, 0.1, 25, None, 0.1, 0.1, 25, True, 1, 1, "relu"],
+            [100, 0.1, 0, None, 0.1, 0.1, 25, True, 1, 10, "relu"],
+            [100, 0.1, 10, None, 0.1, 0.1, 25, True, 1, 20, "relu"],
+            [50, 0.03, 0, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
+            [50, 0.03, 10, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
+            [50, 0.03, 10, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
+            [50, 0.03, 10, None, 0.1, 0.1, 10, True, 1, 20, "relu"],
         ]
         return mappings[i]
 
