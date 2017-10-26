@@ -23,6 +23,7 @@ class Gann():
         self.global_training_step = 0
         # Variables to be monitored (by gann code) during a run.
         self.grabvars = []
+        self.printed_steps = False
         self.grabvar_figures = []  # One matplotlib figure for each grabvar
         self.minibatch_size = mbs
         self.validation_interval = vint
@@ -139,6 +140,7 @@ class Gann():
                 error += grabvals[0]
 
             self.error_history.append((step, error / nmb))
+            self.printed_steps=False
 
         self.global_training_step += epochs
 
@@ -240,7 +242,9 @@ class Gann():
             sess.probe_stream.add_summary(results[2], global_step=step)
         else:
             results = sess.run([operators, grabbed_vars], feed_dict=feed_dict)
-        if show_interval and (step % show_interval == 0):
+
+        if show_interval and (step % show_interval == 0) and not self.printed_steps:
+            self.printed_steps=True
             self.display_grabvars(results[1], grabbed_vars, step=step)
         return results[0], results[1], sess
 

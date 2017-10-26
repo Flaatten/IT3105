@@ -247,6 +247,7 @@ class Application():
     def run_network(self, sess=None, continued=False):
         self.status.set("Running GANN")
         matplotlib.pyplot.ion()
+
         for i in self.display_weights:
           self.ann.add_grabvar(i,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
         for i in self.display_biases:
@@ -288,14 +289,14 @@ class Application():
     def getMapping(self, i):
         #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, init_weight_range, map-batch-size, map_layers(-1=none), steps, map_layers, dendro, disp_wgh, disp_bias
         mappings = [
-            [5, 0.05, 0, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [1000, 0.08, 0, 15, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [10, 0.1, 0, 5, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [30, 0.1, 0, 50, 0.1, 0.1, 5, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [5, 0.01, 0, 20, 0.1, 0.1, 1, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [50, 0.3, 0, 5, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
-            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [5, 0.05, 1, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1",1,0,0,0,0,0,0],
+            [1000, 0.08, 50, 15, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [10, 0.1, 1, 5, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [30, 0.1, 0, 50, 0.1, 0.1, 5, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [5, 0.01, 1, 20, 0.1, 0.1, 1, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [50, 0.3, 0, 5, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
         ]
         return mappings[i]
 
