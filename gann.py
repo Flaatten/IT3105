@@ -43,7 +43,16 @@ class Gann():
     # Grabvars are displayed by my own code, so I have more control over the display format.  Each
     # grabvar gets its own matplotlib figure in which to display its value.
     def add_grabvar(self, module_index, type='wgt'):
+        print(module_index)
         self.grabvars.append(self.modules[module_index].getvar(type))
+        if(type!='bias'):
+            self.grabvar_figures.append(matplotlib.pyplot.figure())
+
+    def add_input_to_grabvar(self):
+        self.grabvars.append(self.input)
+        self.grabvar_figures.append(matplotlib.pyplot.figure())
+    def add_output_to_grabvar(self):
+        self.grabvars.append(self.output)
         self.grabvar_figures.append(matplotlib.pyplot.figure())
 
     def roundup_probes(self):
@@ -141,7 +150,6 @@ class Gann():
         if bestk is not None:
             self.test_func = self.gen_match_counter(
                 self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
-
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                  feed_dict=feeder,  show_interval=None)
 
@@ -152,6 +160,17 @@ class Gann():
             print('%s Set Correct Classifications = %f %%' %
                   (msg, 100 * (testres / len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
+
+    def do_mapping(self, sess, cases, mapping=True, msg='Mapping', bestk=None):
+        inputs = [c[0] for c in cases]
+        targets = [c[1] for c in cases]
+        feeder = {self.input: inputs, self.target: targets}
+        self.test_func = self.predictor
+        if bestk is not None:
+            self.test_func = self.gen_match_counter(self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
+        
+        testres, grabvals, _ = self.run_one_step(self.predictor, self.grabvars, self.probes, session=sess,
+                                                 feed_dict=feeder,  show_interval=1)
 
     # Logits = tensor, float - [batch_size, NUM_CLASSES].
     # labels: Labels tensor, int32 - [batch_size], with values in range [0, NUM_CLASSES).
@@ -173,6 +192,11 @@ class Gann():
         self.current_session = session
         self.do_training(
             session, self.caseman.get_training_cases(), epochs, continued=continued)
+
+    def mapping_session(self, sess, bestk=None):
+        cases = self.caseman.get_testing_cases()
+        if len(cases) > 0:
+            self.do_testing(sess, cases, msg='Mapping', bestk=bestk)
 
     def testing_session(self, sess, bestk=None):
         cases = self.caseman.get_testing_cases()
@@ -214,6 +238,7 @@ class Gann():
         for i, v in enumerate(grabbed_vals):
             if names:
                 print("   " + names[i] + " = ", end="\n")
+
             # If v is a matrix, use hinton plotting
             if type(v) == np.ndarray and len(v.shape) > 1:
                 TFT.hinton_plot(
@@ -235,12 +260,6 @@ class Gann():
     # After a run is complete, runmore allows us to do additional training on the network, picking up where we
     # left off after the last call to run (or runmore).  Use of the "continued" parameter (along with
     # global_training_step) allows easy updating of the error graph to account for the additional run(s).
-
-    def runmore(self, epochs=100, bestk=None):
-        self.reopen_current_session()
-        self.run(epochs, sess=self.current_session,
-                 continued=True, bestk=bestk)
-
     #   ******* Saving GANN Parameters (weights and biases) *******************
     # This is useful when you want to use "runmore" to do additional training on a network.
     # spath should have at least one directory (e.g. netsaver), which you will need to create ahead of time.
@@ -373,7 +392,7 @@ class Caseman():
             # Can choose between this:
             try:
                 nbits = int(self.params[0])
-                self.cases = TFT.gen_all_one_hot_cases(2**4)
+                self.cases = TFT.gen_all_one_hot_cases(2**nbits)
             except ValueError:
                 print("Case Parameters not valid")
             # OR this:
@@ -441,7 +460,7 @@ class Caseman():
             self.cases = None
         else:
             print("not a valid case")
-        #print(self.cases)
+        print(self.cases)
         print(len(self.cases), "cases generated")
 
     def organize_cases(self):
