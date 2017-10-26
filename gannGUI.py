@@ -156,12 +156,12 @@ class Application():
             self.lrate = float(self.network_settings[4].get())
             self.initial_weight_range = []
             for x in self.network_settings[5].get().split(","):
-              print(x[0])
-              if(x[0] == "-"):
-                print(x[1:3])
-                self.initial_weight_range.append(-float(x[1:4]))
-              else:
-                self.initial_weight_range.append(float(x))
+                print(x[0])
+                if(x[0] == "-"):
+                    print(x[1:3])
+                    self.initial_weight_range.append(-float(x[1:4]))
+                else:
+                    self.initial_weight_range.append(float(x))
             print(self.initial_weight_range)
             self.epochs = int(self.network_settings[6].get())
             self.vfrac = float(self.network_settings[7].get())
@@ -232,7 +232,7 @@ class Application():
         self.network_settings[4].set(mapping[1])
         self.network_settings[5].set(mapping[11])
         self.network_settings[6].set(mapping[0])
-        self.network_settings[7].set(mapping[2])
+        self.network_settings[7].set(mapping[4])
         self.network_settings[8].set(mapping[5])
         self.network_settings[9].set(mapping[3])
         self.network_settings[10].set(mapping[12])#Map Batch Size - the number of training cases to be used for a map test (described below). A value of zero indicates that no map test will be performed.
@@ -247,6 +247,7 @@ class Application():
     def run_network(self, sess=None, continued=False):
         self.status.set("Running GANN")
         matplotlib.pyplot.ion()
+
         for i in self.display_weights:
           self.ann.add_grabvar(i,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
         for i in self.display_biases:
@@ -288,14 +289,14 @@ class Application():
     def getMapping(self, i):
         #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, init_weight_range, map-batch-size, map_layers(-1=none), steps, map_layers, dendro, disp_wgh, disp_bias
         mappings = [
-            [5, 0.05, 0.1, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],
-            [10, 0.1, 10, 10, 0.1, 0.1, 10, "softmax", 1, "sigmoid", "mse", "-0.1,0.1",10,0,0,0,0,0,0],
-            [100, 0.1, 0.1, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",10,0,0,0,0,0,0],
-            [100, 0.1, 0.1, 20, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",10,0,0,0,0,0,0],
-            [50, 0.03, 0.1, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],
-            [20, 0.01, 0.1, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],
-            [50, 0.03, 0.1, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],
-            [50, 0.03, 0.1, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],
+            [5, 0.05, 1, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1",1,0,0,0,0,0,0],
+            [1000, 0.08, 50, 15, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [10, 0.1, 1, 5, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [30, 0.1, 0, 50, 0.1, 0.1, 5, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [5, 0.01, 1, 20, 0.1, 0.1, 1, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [50, 0.3, 0, 5, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
         ]
         return mappings[i]
 
@@ -308,13 +309,13 @@ class Application():
 
     def getDims(self, i):
         dims = [
-            "10 4 2",
-            "8 3 8",
-            "15 15 16",
-            "25 18 9",
+            "10 2",
+            "16 16",
+            "15 15 5 16",
+            "25 10 5 9",
             "784 100 10",
-            "11 3 6",
-            "9 3 7",
+            "11 6",
+            "9 7",
             "8 3 10",
         ]
         return dims[i]
