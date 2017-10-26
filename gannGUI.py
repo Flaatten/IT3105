@@ -6,6 +6,8 @@ from tkinter import *
 from tkinter import ttk
 from gann import Gann, Caseman
 import tflowTools as TFT
+import matplotlib
+matplotlib.use("TkAgg")
 
 
 class Application():
@@ -124,13 +126,16 @@ class Application():
                 column=3, row=i + 1, sticky=W, padx=5, pady=5)
 
         ttk.Button(frame, text="Validate",
-                   command=self.validate).grid(column=0, row=20)
+                   command=self.validate).grid(column=1, row=20)
         ttk.Button(frame, text="Initialize",
-                   command=self.initialize).grid(column=1, row=20)
+                   command=self.initialize).grid(column=2, row=20)
         ttk.Button(frame, text="autofill",
-                   command=self.autofill).grid(column=2, row=20)
+                   command=self.autofill).grid(column=0, row=20)
         ttk.Button(frame, text="Run network",
                    command=self.run_network).grid(column=3, row=20)
+
+        ttk.Button(frame, text="Do mapping",
+                   command=self.do_mapping).grid(column=0, row=21)
 
         ttk.Label(frame, text="Status", font=("Arial", 20)
                   ).grid(row=21, column=1, pady=10)
@@ -163,14 +168,18 @@ class Application():
             self.tfrac = float(self.network_settings[8].get())
 
             self.mbs = int(self.network_settings[9].get())
-            #self.map_batch_size = int(self.network_settings[10].get())
+            self.map_batch_size = int(self.network_settings[10].get())
 
             self.vint = int(self.network_settings[11].get())
-            # self.steps = int(self.network_settings[12].get())      WHY ?
-            #self.map_layers = int(self.network_settings[13].get())
-            #self.dendrograms = int(self.network_settings[14].get())
-            #self.display_weights = int(self.network_settings[15].get())
-            #self.biases = int(self.network_settings[16].get())
+            self.steps = int(self.network_settings[12].get())
+            self.map_layers = [int(x)
+                         for x in self.network_settings[13].get().split(" ")]
+            self.dendrograms = [int(x)
+                         for x in self.network_settings[14].get().split(" ")]
+            self.display_weights = [int(x)
+                         for x in self.network_settings[15].get().split(" ")]
+            self.display_biases = [int(x)
+                         for x in self.network_settings[16].get().split(" ")]
             self.valid_input = True
 
         except Exception as e:
@@ -209,6 +218,11 @@ class Application():
         self.tfrac = mapping[5]
         self.vint = mapping[6]
         self.bestk = mapping[8]
+        self.map_batch_size = mapping[12]
+        self.steps = mapping[13]
+        self.map_layers = mapping[14]
+        self.display_weights = mapping[15]
+        self.display_biases = mapping[16]
 
         self.parameters.set(params)
         self.network_settings[0].set(dims)
@@ -221,43 +235,72 @@ class Application():
         self.network_settings[7].set(mapping[4])
         self.network_settings[8].set(mapping[5])
         self.network_settings[9].set(mapping[3])
+        self.network_settings[10].set(mapping[12])#Map Batch Size - the number of training cases to be used for a map test (described below). A value of zero indicates that no map test will be performed.
         self.network_settings[11].set(mapping[6])
+        self.network_settings[12].set(mapping[13])#Steps - the total number of minibatches to be run through the system during training.
+        self.network_settings[13].set(mapping[14])#Map Layers - the layers to be visualized during the map test.
+        self.network_settings[14].set(mapping[15])#Map Dendrograms - list of the layers whose activation patterns (during the map test) will be used to produce dendrograms, one per specied layer. See below for more details on dendrograms.
+        self.network_settings[15].set(mapping[16])#Display Weights - list of the weight arrays to be visualized at the end of the run.
+        self.network_settings[16].set(mapping[17])#Display Biases - list of the bias vectors to be visualized at the end of the run.
 
-        # self.network_settings[10].set("50")
-        # self.network_settings[11].set("50")
-        # self.network_settings[12].set("50")
-        # self.network_settings[13].set("50")
-        # self.network_settings[14].set("50")
-        # self.network_settings[15].set("50")
 
-    def run_network(self):
+    def run_network(self, sess=None, continued=False):
         self.status.set("Running GANN")
-        self.ann.run(self.epochs, bestk=1)
+        matplotlib.pyplot.ion()
+        for i in self.display_weights:
+          self.ann.add_grabvar(i,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
+        for i in self.display_biases:
+          self.ann.add_grabvar(i,'bias') # Add a grabvar (to be displayed in its own matplotlib window).
+
+        #self.ann.gen_probe(0,'wgt',('hist1','avg1'))  # Plot a histogram and avg of the incoming weights to module 0.
+        #self.ann.gen_probe(0,'out',('avg1','max1'))  # Plot average and max value of module 1's output vector
+        #self.ann.add_grabvar(0,'in') # Add a grabvar (to be displayed in its own matplotlib window).
+        #self.ann.add_grabvar(0,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
+        #self.ann.add_grabvar(0,'out') # Add a grabvar (to be displayed in its own matplotlib window).
+
+        self.ann.training_session(self.epochs, sess=sess, continued=continued)
+        #if(self.map_batch_size != 0):
+          #self.do_mapping()
+        self.ann.test_on_trains(sess=self.ann.current_session, bestk=self.bestk)
+        self.ann.testing_session(sess=self.ann.current_session, bestk=self.bestk)
+        self.ann.close_current_session(view=False)
+        matplotlib.pyplot.show()
+        matplotlib.pyplot.ioff()
+
         self.status.set("Finished running Gann")
 
+    def do_mapping(self, continued=True):
+      matplotlib.pyplot.ion()
+      if(self.map_layers != -1):
+        for i in self.map_layers:
+          self.ann.add_grabvar(i,'in') # Add a grabvar (to be displayed in its own matplotlib window).
+          self.ann.add_grabvar(i,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
+          self.ann.add_grabvar(i,'out') # Add a grabvar (to be displayed in its own matplotlib window).
+      cases = self.cman.get_training_cases()[0:self.map_batch_size]
+
+      self.ann.reopen_current_session()
+      sess=self.ann.current_session
+      self.ann.do_mapping(sess, cases)
+      self.ann.close_current_session(view=False)
+      matplotlib.pyplot.show()
+      matplotlib.pyplot.ioff()
+
     def getMapping(self, i):
-        #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, in_wght_rangt
+        #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, init_weight_range, map-batch-size, map_layers(-1=none), steps, map_layers, dendro, disp_wgh, disp_bias
         mappings = [
-            [5, 0.05, 0, 10, 0.1, 0.1, 1, "softmax", 1,
-                "relu", "cross-entropy", "-0.1,0.1"],
-            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1"],
-            [1000, 0.08, 0, 15, 0.1, 0.1, 25, "softmax",
-                1, "relu", "cross-entropy", "-0.1,0.1"],
-            [10, 0.1, 0, 5, 0.1, 0.1, 1, "softmax", 1,
-                "relu", "cross-entropy", "-0.1,0.1"],
-            [30, 0.1, 0, 50, 0.1, 0.1, 5, "softmax",
-                1, "relu", "cross-entropy", "-0.1,0.1"],
-            [5, 0.01, 0, 20, 0.1, 0.1, 1, "softmax",
-                1, "relu", "cross-entropy", "-0.1,0.1"],
-            [50, 0.3, 0, 5, 0.1, 0.1, 10, "softmax",
-                1, "relu", "cross-entropy", "-0.1,0.1"],
-            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",
-                1, "relu", "cross-entropy", "-0.1,0.1"],
+            [5, 0.05, 0, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [1000, 0.08, 0, 15, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [10, 0.1, 0, 5, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [30, 0.1, 0, 50, 0.1, 0.1, 5, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [5, 0.01, 0, 20, 0.1, 0.1, 1, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [50, 0.3, 0, 5, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
+            [50, 0.03, 0, 20, 0.1, 0.1, 10, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",100,0,0,0,0,0,0]],
         ]
         return mappings[i]
 
     def getParams(self, i):
-        params = ["10", "4", "500 15", "25 1000 0 8"]
+        params = ["10", "3", "500 15", "25 1000 0 8"]
         if(i < 4):
             return params[i]
         else:
