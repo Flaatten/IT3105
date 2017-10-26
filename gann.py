@@ -27,6 +27,7 @@ class Gann():
         self.minibatch_size = mbs
         self.validation_interval = vint
         self.validation_history = []
+        self.validation_percentage = []
         self.caseman = cman
         self.output_activation = output_activation
         self.error_type = error_type
@@ -106,6 +107,7 @@ class Gann():
         self.trainer = optimizer.minimize(self.error, name='Backprop')
 
     def do_training(self, sess, cases, epochs=100, continued=False, hidden_activation_function="sigmoid"):
+
         if not(continued):
             self.error_history = []
         for i in range(epochs):
@@ -115,6 +117,7 @@ class Gann():
             mbs = self.minibatch_size
             ncases = len(cases)
             nmb = math.ceil(ncases / mbs)
+            self.consider_validation_testing(step, sess)
             # Loop through cases, one minibatch at a time.
             for cstart in range(0, ncases, mbs):
                 cend = min(ncases, cstart + mbs)
@@ -125,11 +128,16 @@ class Gann():
                 _, grabvals, _ = self.run_one_step([self.trainer], gvars, self.probes, session=sess,
                                                    feed_dict=feeder, step=step, show_interval=self.show_interval)
                 error += grabvals[0]
+
             self.error_history.append((step, error / nmb))
-            self.consider_validation_testing(step, sess)
+
         self.global_training_step += epochs
+
         TFT.plot_training_history(self.error_history, self.validation_history, xtitle="Epoch", ytitle="Error",
-                                  title="", fig=not(continued))
+                                  title="Error history", fig=not(continued))
+
+        TFT.plot_training_history(self.validation_percentage, xtitle="Epoch", ytitle="Percentage correct",
+                                  title="Validation percentage", fig=not(continued))
 
     # bestk = 1 when you're doing a classification task and the targets are one-hot vectors.  This will invoke the
     # gen_match_counter error function. Otherwise, when
@@ -139,7 +147,9 @@ class Gann():
         inputs = [c[0] for c in cases]
         targets = [c[1] for c in cases]
         feeder = {self.input: inputs, self.target: targets}
+
         self.test_func = self.error
+
         if bestk is not None:
             self.test_func = self.gen_match_counter(
                 self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
@@ -150,9 +160,9 @@ class Gann():
         if bestk is None:
             print('%s Set Error = %f ' % (msg, testres))
         else:
-            print("result: ", testres, ", num cases: ", len(cases))
-            print('%s Set Correct Classifications = %f %%' %
+            print('%s Set Percentage = %f %%' %
                   (msg, 100 * (testres / len(cases))))
+            return (100 * (testres / len(cases)))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
 
     # Logits = tensor, float - [batch_size, NUM_CLASSES].
@@ -185,7 +195,9 @@ class Gann():
         if self.validation_interval and (epoch % self.validation_interval == 0):
             cases = self.caseman.get_validation_cases()
             if len(cases) > 0:
-                error = self.do_testing(sess, cases, msg='Validation Testing')
+                error = self.do_testing(sess, cases, msg='Validation')
+                percentage = self.do_testing(sess, cases, msg='Validation', bestk=1)
+                self.validation_percentage.append((epoch, percentage))
                 self.validation_history.append((epoch, error))
 
     # Do testing (i.e. calc error without learning) on the training set.
@@ -426,8 +438,10 @@ class Caseman():
             # Glass
             f = open("./datasets/glass.txt", "r")
             for line in f:
-                print(line)
                 arr = [float(i) for i in line.split(',')[:-1]]
+                arr[1]=arr[1]/13
+                arr[4]=arr[4]/74
+                arr[6]=arr[6]/8
                 label = TFT.int_to_one_hot(int(line.split(',')[-1][0]) - 1, 7)
                 self.cases.append([arr, label])
         elif(self.casenr == 7):
@@ -443,7 +457,6 @@ class Caseman():
             self.cases = None
         else:
             print("not a valid case")
-        # print(self.cases)
         print(len(self.cases), "cases generated")
 
     def organize_cases(self):
