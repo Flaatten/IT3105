@@ -290,7 +290,7 @@ class Application():
         #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, init_weight_range, map-batch-size, map_layers(-1=none), steps, map_layers, dendro, disp_wgh, disp_bias
         mappings = [
             [5, 0.05, 1, 10, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
-            [100, 0.1, 0, 1, 0.1, 0.1, 25, "softmax", 1, "relu", "MSE", "-0.1,0.1",1,0,0,0,0,0,0],
+            [2, 0.1, 1, 1, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
             [1000, 0.08, 50, 15, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
             [10, 0.1, 1, 5, 0.1, 0.1, 1, "softmax", 1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
             [30, 0.1, 0, 50, 0.1, 0.1, 5, "softmax",1, "relu", "cross-entropy", "-0.1,0.1",1,0,0,0,0,0,0],
@@ -310,7 +310,7 @@ class Application():
     def getDims(self, i):
         dims = [
             "10 2",
-            "16 16",
+            "8 3 8",
             "15 15 5 16",
             "25 10 5 9",
             "784 100 10",
