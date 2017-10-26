@@ -289,7 +289,7 @@ class Application():
         #epochs, learnign_rate, show_int, mbs, vfrac, tfrac, vint, OutputActivation, bestk, hidden_activating, loss, init_weight_range, map-batch-size, map_layers(-1=none), steps, map_layers, dendro, disp_wgh, disp_bias
         mappings = [
             [5, 0.05, 0.1, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],
-            [100, 0.1, 0.1, 1, 0.1, 0.1, 10, "softmax", 1, "sigmoid", "mse", "-0.1,0.1",10,0,0,0,0,0,0],
+            [10, 0.1, 10, 10, 0.1, 0.1, 10, "softmax", 1, "sigmoid", "mse", "-0.1,0.1",10,0,0,0,0,0,0],
             [100, 0.1, 0.1, 10, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",10,0,0,0,0,0,0],
             [100, 0.1, 0.1, 20, 0.1, 0.1, 25, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",10,0,0,0,0,0,0],
             [50, 0.03, 0.1, 20, 0.1, 0.1, 10, "softmax", 1, "relu", "cross-entropy", "-0.01,0.01",100,0,0,0,0,0,0],

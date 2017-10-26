@@ -392,7 +392,11 @@ class Caseman():
             # Can choose between this:
             try:
                 nbits = int(self.params[0])
-                self.cases = TFT.gen_all_one_hot_cases(2**nbits)
+                for i in range(0, 100):
+                    cases = TFT.gen_all_one_hot_cases(2**nbits)
+                    for j in range(0, len(cases)):
+                        print(cases[j])
+                        self.cases.append(cases[j])
             except ValueError:
                 print("Case Parameters not valid")
             # OR this:
